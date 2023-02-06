@@ -1,0 +1,13 @@
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.label {
+  font-size: 30px;
+}
+
+.input {
+  padding: 5px 15px;
+}
