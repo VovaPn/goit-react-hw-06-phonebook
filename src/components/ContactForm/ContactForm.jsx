@@ -1,57 +1,78 @@
 import React, { useState } from 'react';
-import PropTypes from 'prop-types';
 import s from './ContactForm.module.css';
-import InputField from 'components/InputField/InputField';
+import { nanoid } from 'nanoid';
+import { useDispatch, useSelector } from 'react-redux';
+import { addContact } from 'redux/contacts/contactsSlice';
+import { getContacts } from 'redux/selectors';
 
-const initValue = {
-  name: '',
-  number: '',
-};
+export const ContactForm = () => {
+  const [name, setName] = useState('');
+  const [number, setNumber] = useState('');
 
-function ContactForm({ onSubmit }) {
-  const [value, setValue] = useState(initValue);
+  const contacts = useSelector(getContacts);
+  const dispatch = useDispatch();
 
-  const handleInputChange = e =>
-    setValue(p => ({ ...p, [e.target.name]: e.target.value }));
-
-  const handleFormSubmit = e => {
-    e.preventDefault();
-    onSubmit(value);
-    setValue(initValue);
+  const handleChange = ({ currentTarget: { name, value } }) => {
+    switch (name) {
+      case 'name':
+        setName(value);
+        break;
+      case 'number':
+        setNumber(value);
+        break;
+      default:
+    }
   };
 
-  const { name, number } = value;
+  const formSubmit = newContact => {
+    const isExist = contacts.find(
+      cont =>
+        cont.name.toLowerCase().trim() === newContact.name.toLowerCase().trim()
+    );
+    if (isExist) {
+      return alert(`${newContact.name} is already in contacts`);
+    } else if (
+      (newContact.name.trim() === '', newContact.number.trim() === '')
+    ) {
+      return alert('Заполните все поля');
+    }
+    dispatch(addContact(newContact));
+  };
+
+  const handleSubmit = evt => {
+    evt.preventDefault();
+    formSubmit({ name, number, id: nanoid() });
+    setName('');
+    setNumber('');
+  };
+
   return (
-    <form className={s.container} onSubmit={handleFormSubmit}>
-      <InputField
-        label="Name"
-        value={name}
-        onChange={handleInputChange}
-        type="text"
-        name="name"
-        pattern="^[a-zA-Zа-яА-Я]+(([' -][a-zA-Zа-яА-Я ])?[a-zA-Zа-яА-Я]*)*$"
-        title="Name may contain only letters, apostrophe, dash and spaces. For example Adrian, Jacob Mercer, Charles de Batz de Castelmore d'Artagnan"
-        required
-      />
-      <InputField
-        label="Number"
-        value={number}
-        onChange={handleInputChange}
-        type="tel"
-        name="number"
-        pattern="\+?\d{1,4}?[-.\s]?\(?\d{1,3}?\)?[-.\s]?\d{1,4}[-.\s]?\d{1,4}[-.\s]?\d{1,9}"
-        title="Phone number must be digits and can contain spaces, dashes, parentheses and can start with +"
-        required
-      />
-      <button className={s.btn} type="submit">
-        Add contact
-      </button>
+    <form className={s.form} onSubmit={handleSubmit}>
+      <label>
+        Name
+        <input
+          type="text"
+          name="name"
+          value={name}
+          onChange={handleChange}
+          pattern="^[a-zA-Zа-яА-Я]+(([' -][a-zA-Zа-яА-Я ])?[a-zA-Zа-яА-Я]*)*$"
+          title="Name may contain only letters, apostrophe, dash and spaces. For example Adrian, Jacob Mercer, Charles de Batz de Castelmore d'Artagnan"
+          required
+        />
+      </label>
+      <label>
+        Number
+        <input
+          type="tel"
+          name="number"
+          value={number}
+          onChange={handleChange}
+          pattern="\+?\d{1,4}?[-.\s]?\(?\d{1,3}?\)?[-.\s]?\d{1,4}[-.\s]?\d{1,4}[-.\s]?\d{1,9}"
+          title="Phone number must be digits and can contain spaces, dashes, parentheses and can start with +"
+          required
+        />
+      </label>
+      <button>Add contact</button>
     </form>
   );
-}
-
-ContactForm.propTypes = {
-  onSubmit: PropTypes.func.isRequired,
 };
-
-export default ContactForm;
